@@ -123,6 +123,8 @@ fi
 cp -r /custom_files/run_bootfile_dev.sh root/scripts
 cp -r /custom_files/run_bootfile_prod.sh root/scripts
 cp -r /custom_files/create-users.sh root/scripts
+cp -r /custom_files/disable_disconnected_nics.sh root/scripts
+cp -r /custom_files/disable_disconnected_nics.service usr/lib/systemd/system/
 if [ -n "$prod_flag" ]; then
   cp -r /custom_files/run_bootfile_prod.service usr/lib/systemd/system/run_bootfile.service
 else
@@ -155,7 +157,6 @@ else
     mkdir -p afs/slac.stanford.edu
   fi
   if [ -d "afs/slac.stanford.edu" ]; then
-#    echo "172.23.66.102:/afs/slac.stanford.edu /afs/slac.stanford.edu nfs _netdev,auto,x-systemd.automount,x-systemd.mount-timeout=5min,x-systemd.after=sys-subsystem-net-devices-enp7s0.device,retry=10,timeo=14 0 0" > etc/fstab
     echo "s3dflclsdevnfs001:/sdf/group/ad/transition/afs/slac.stanford.edu /afs/slac.stanford.edu nfs _netdev,auto,x-systemd.automount,x-systemd.mount-timeout=5min,x-systemd.after=sys-subsystem-net-devices-enp7s0.device,retry=10,timeo=14 0 0" > etc/fstab
   fi
 fi
@@ -170,17 +171,18 @@ sed -i "s/#DefaultLimitRTPRIO=/DefaultLimitRTPRIO=infinity/g" etc/systemd/system
 sed -i "s/#DefaultLimitMEMLOCK=/DefaultLimitMEMLOCK=infinity/g" etc/systemd/user.conf
 sed -i "s/#DefaultLimitRTPRIO=/DefaultLimitRTPRIO=infinity/g" etc/systemd/user.conf
 
-
 # chroot, set a blank password to root, and create the laci account. laci
 # account must have UID 8412 and be part of an lcls group with GID 2211.
 # The IDs are important for accessing NFS directories.
+# Deactivate all NICs that are disconnected from a network.
 # Activate NTP, generate required locales
 chroot . \
     bash -c '\
         /root/scripts/create-users.sh && \
         systemctl enable /usr/lib/systemd/system/run_bootfile.service && \
-	systemctl enable ntpd && \
-	localedef -i en_US -f UTF-8 en_US.utf8 && \
+        systemctl enable ntpd && \
+        systemctl enable disable_disconnected_nics.service && \
+        localedef -i en_US -f UTF-8 en_US.utf8 && \
         exit \
     '
 
