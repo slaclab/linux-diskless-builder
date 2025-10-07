@@ -67,12 +67,13 @@ cd /rl9-builder
 dnf --installroot=/rl9-builder/diskless-root --releasever=9 -y install rocky-release
 
 # Install packages in our target root directory
+# --enablerepo=rt: Enable repository for real time kernel
 # --setopt=install_weak_deps=False: Cuts image size by more than half
-dnf --installroot=/rl9-builder/diskless-root  --setopt=install_weak_deps=False -y install \
+dnf --enablerepo=rt --installroot=/rl9-builder/diskless-root  --setopt=install_weak_deps=False -y install \
     basesystem \
     filesystem \
     bash \
-    kernel \
+    kernel-rt \
     passwd \
     openssh-server \
     openssh-clients \
