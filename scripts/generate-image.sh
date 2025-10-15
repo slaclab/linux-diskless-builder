@@ -95,7 +95,7 @@ dnf --enablerepo=rt --installroot=/rl9-builder/diskless-root  --setopt=install_w
 	sudo \
     cronie \
     hostname \
-    less
+    less \
 
 # hack alert! Install screen on host to work around a bug:
 #   gpg key read from /etc/pki/... but rpm WILL NOT APPEND "installroot" to path
@@ -104,9 +104,14 @@ dnf -y install screen
 # for the screen cli utility only
 dnf --installroot=/rl9-builder/diskless-root --releasever=9 -y install epel-release
 dnf --installroot=/rl9-builder/diskless-root  -y install screen
+# busybox needed for tar (got CPSW tar permission issues using GNU tar)
+dnf --installroot=/rl9-builder/diskless-root -y install busybox
 
 # Go to our target root directory
 cd diskless-root
+
+# Create symlink to point tar to busybox tar
+ln -s /usr/sbin/busybox usr/local/bin/tar 
 
 # Add SLAC custom files and force copy, even if it exists
 cp -r /custom_files/slac.sh etc/profile.d/
