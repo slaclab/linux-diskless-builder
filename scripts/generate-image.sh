@@ -62,13 +62,19 @@ fi
 cd /centos7-builder
 
 # Download centos-release, if needed
-if [ ! -f "centos-release-7-9.2009.1.el7.centos.x86_64.rpm" ]; then
+if [ ! -f "centos-release-7-9.2009.0.el7.centos.x86_64.rpm" ]; then
   # Get the centos-release RPM
-  yumdownloader centos-release
+  #yumdownloader centos-release-7-9.2009.1.el7.centos
+  wget ftp.cs.stanford.edu/centos/centos/7/os/x86_64/Packages/centos-release-7-9.2009.0.el7.centos.x86_64.rpm
 fi
 
 # centos-release contains things like the yum configs, and is necessary to bootstrap the system
-rpm --root=/centos7-builder/diskless-root -ivh --nodeps centos-release-7-9.2009.1.el7.centos.x86_64.rpm
+rpm --root=/centos7-builder/diskless-root -ivh --nodeps centos-release-7-9.2009.0.el7.centos.x86_64.rpm
+ls /centos7-builder/diskless-root #/etc/yum.repos.d/
+# Switch to Stanford mirrors now that mirror.centos.org is offline
+sed -i s,mirror.centos.org,mirror.stanford.edu,g /centos7-builder/diskless-root/etc/yum.repos.d/CentOS-*.repo
+sed -i s,^#.*baseurl=http,baseurl=http,g /centos7-builder/diskless-root/etc/yum.repos.d/CentOS-*.repo
+sed -i s,^mirrorlist=http,#mirrorlist=http,g /centos7-builder/diskless-root/etc/yum.repos.d/CentOS-*.repo
 
 # Add Intel network card drivers for Dell R750 servers
 RPMs="./Intel_LAN_drivers_Dell_R750/*.rpm"
@@ -117,6 +123,8 @@ fi
 cp -r /custom_files/run_bootfile_dev.sh root/scripts
 cp -r /custom_files/run_bootfile_prod.sh root/scripts
 cp -r /custom_files/create-users.sh root/scripts
+cp -r /custom_files/disable_disconnected_nics.sh root/scripts
+cp -r /custom_files/disable_disconnected_nics.service usr/lib/systemd/system/
 if [ -n "$prod_flag" ]; then
   cp -r /custom_files/run_bootfile_prod.service usr/lib/systemd/system/run_bootfile.service
 else
@@ -126,6 +134,8 @@ cp -r /custom_files/epics.conf etc/security/limits.d
 cp -r /custom_files/90-nproc.conf etc/security/limits.d
 cp -r /custom_files/SLAC_properties etc/SLAC_properties
 cp -r /custom_files/sudoers etc/sudoers
+cp -f /custom_files/sshd_config etc/ssh/sshd_config
+cp -f /custom_files/limits.conf etc/security/limits.conf
 
 # Set some important configuration
 if [ ! -e "init" ]; then
@@ -147,7 +157,7 @@ else
     mkdir -p afs/slac.stanford.edu
   fi
   if [ -d "afs/slac.stanford.edu" ]; then
-    echo "172.23.66.102:/afs/slac.stanford.edu /afs/slac.stanford.edu nfs _netdev,auto,x-systemd.automount,x-systemd.mount-timeout=5min,x-systemd.after=sys-subsystem-net-devices-enp7s0.device,retry=10,timeo=14 0 0" > etc/fstab
+    echo "s3dflclsdevnfs001:/sdf/group/ad/transition/afs/slac.stanford.edu /afs/slac.stanford.edu nfs _netdev,auto,x-systemd.automount,x-systemd.mount-timeout=5min,x-systemd.after=sys-subsystem-net-devices-enp7s0.device,retry=10,timeo=14 0 0" > etc/fstab
   fi
 fi
 
@@ -164,14 +174,21 @@ sed -i "s/#DefaultLimitRTPRIO=/DefaultLimitRTPRIO=infinity/g" etc/systemd/user.c
 # chroot, set a blank password to root, and create the laci account. laci
 # account must have UID 8412 and be part of an lcls group with GID 2211.
 # The IDs are important for accessing NFS directories.
-# Activate NTP.
+# Deactivate all NICs that are disconnected from a network.
+# Activate NTP, generate required locales
 chroot . \
     bash -c '\
         /root/scripts/create-users.sh && \
         systemctl enable /usr/lib/systemd/system/run_bootfile.service && \
-	systemctl enable ntpd && \
+        systemctl enable ntpd && \
+        systemctl enable disable_disconnected_nics.service && \
+        localedef -i en_US -f UTF-8 en_US.utf8 && \
         exit \
     '
+
+# Set the default locale. This matches the default on our DEV machines.
+echo "LANG=en_US.utf8" > etc/locale.conf
+
 
 # Generate ssh keys to avoid generating new ones every time the diskless
 # system boots, creating annoying RSA key mismatch error messages when

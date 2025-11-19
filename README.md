@@ -1,5 +1,7 @@
 # Linux Lite for diskless systems
 
+[DOE Code](https://www.osti.gov/doecode/biblio/75992)
+
 ## Description
 
 This repository contains the code used to generate regular Linux diskless images, which can be boot using IPXE.
@@ -12,7 +14,7 @@ You need to run this script in a host with the docker engine installed in it.
 
 In order to generate the diskless images, you just need to run the [generate.sh](generate.sh) script. The resulting files will be located in the [output](output) directory. generate.sh can be run using optional parameters:
 
-If --prod is not passed as argument, the image will be built for production environment. Otherwise, it will build for dev environment.
+If --prod is passed as argument, the image will be built for production environment. Otherwise, it will build for dev environment.
 
 Optional arguments:
   -h, --help                  Show this help message and exit
@@ -30,3 +32,21 @@ cat /<distro>-builder/diskless-root/etc/group
 ```
 
 Each directory in this repository has a README.md file that you can check to learn more about its contents.
+
+## Testing with QEMU
+
+A simple run-qemu.sh script is provided to test the image locally in QEMU. 
+
+`qemu-system-x86_64` must be available in your PATH for this to work. On Debian or Ubuntu, `qemu-system-x86_64` can be installed with `sudo apt install qemu-system`.
+
+
+To boot the image in QEMU:
+```sh
+./run-qemu.sh
+```
+
+The script bridges host port 8022 to guest port 22, so you can SSH in with the following command:
+```
+ssh -p 8022 laci@localhost
+```
+

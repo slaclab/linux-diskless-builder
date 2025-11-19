@@ -1,3 +1,1 @@
-laci   ALL= NOPASSWD:  /usr/bin/chrt
-flaci  ALL= NOPASSWD:  /usr/bin/chrt
-acctf  ALL= NOPASSWD:  /usr/bin/chrt
+laci, flaci, acctf   ALL= NOPASSWD:  /usr/bin/chrt, /sbin/reboot, /sbin/poweroff, /sbin/shutdown
