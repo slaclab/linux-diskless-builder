@@ -136,6 +136,7 @@ cp -r /custom_files/SLAC_properties etc/SLAC_properties
 cp -r /custom_files/sudoers etc/sudoers
 cp -f /custom_files/sshd_config etc/ssh/sshd_config
 cp -f /custom_files/limits.conf etc/security/limits.conf
+cp -f /custom_files/udev_rules/* etc/udev/rules.d/
 
 # Set some important configuration
 if [ ! -e "init" ]; then
