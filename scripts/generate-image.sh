@@ -23,6 +23,20 @@ show_usage() {
 prod_flag=
 skip_output_flag=
 
+# Create the directory
+mkdir -p /rl9-builder/diskless-root/etc/yum.repos.d
+
+cat > /rl9-builder/diskless-root/etc/yum.repos.d/rocky-vault.repo << 'EOF'
+[rocky-vault]
+name=Rocky Linux Vault
+baseurl=https://dl.rockylinux.org/vault/rocky/9.5/BaseOS/x86_64/os/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
+EOF
+
+dnf --showduplicates list kernel
+
 # Get the version of the Rocky diskless builder used for this
 read -r version < VERSION
 
@@ -68,11 +82,12 @@ dnf --installroot=/rl9-builder/diskless-root --releasever=9 -y install rocky-rel
 
 # Install packages in our target root directory
 # --setopt=install_weak_deps=False: Cuts image size by more than half
-dnf --installroot=/rl9-builder/diskless-root  --setopt=install_weak_deps=False -y install \
+# --enablerepo=rocky-vault: Used to get specific version of the kernel
+dnf --installroot=/rl9-builder/diskless-root  --enablerepo=rocky-vault --setopt=install_weak_deps=False -y install \
     basesystem \
     filesystem \
     bash \
-    kernel \
+    kernel-5.14.0-503.16.1.el9_5 \
     passwd \
     openssh-server \
     openssh-clients \
