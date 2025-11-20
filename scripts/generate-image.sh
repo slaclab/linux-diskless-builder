@@ -61,19 +61,54 @@ if [ ! -d "/rl9-builder/diskless-root" ]; then
   mkdir /rl9-builder/diskless-root
 fi
 
+# Add vault repo for specific version of rocky RT
+VAULT_BASE="https://dl.rockylinux.org/vault/rocky/9.5"
+
+mkdir -p /rl9-builder/diskless-root/etc/yum.repos.d
+
+cat > /rl9-builder/diskless-root/etc/yum.repos.d/rocky-9.5-vault.repo << EOF
+[rocky-9.5-baseos]
+name=Rocky Linux 9.5 - BaseOS
+baseurl=${VAULT_BASE}/BaseOS/x86_64/os/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
+
+[rocky-9.5-appstream]
+name=Rocky Linux 9.5 - AppStream  
+baseurl=${VAULT_BASE}/AppStream/x86_64/os/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
+
+[rocky-9.5-extras]
+name=Rocky Linux 9.5 - Extras
+baseurl=${VAULT_BASE}/extras/x86_64/os/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
+
+[rocky-9.5-rt]
+name=Rocky Linux 9.5 - RT
+baseurl=${VAULT_BASE}/RT/x86_64/os/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9
+EOF
+
 cd /rl9-builder
 
 # rocky-release contains things like the dnf configs, and is necessary to bootstrap the system
-dnf --installroot=/rl9-builder/diskless-root --releasever=9 -y install rocky-release
+dnf --installroot=/rl9-builder/diskless-root --enablerepo='rocky-9.5-*' -y install rocky-release
 
 # Install packages in our target root directory
 # --enablerepo=rt: Enable repository for real time kernel
 # --setopt=install_weak_deps=False: Cuts image size by more than half
-dnf --enablerepo=rt --installroot=/rl9-builder/diskless-root  --setopt=install_weak_deps=False -y install \
+dnf --enablerepo='rocky-9.5-*' --installroot=/rl9-builder/diskless-root  --setopt=install_weak_deps=False -y install \
     basesystem \
     filesystem \
+    kernel-rt-5.14.0-503.16.1.el9_5.x86_64 \
     bash \
-    kernel-rt \
     passwd \
     openssh-server \
     openssh-clients \
