@@ -130,6 +130,8 @@ fi
 cp -r /custom_files/run_bootfile_dev.sh root/scripts
 cp -r /custom_files/run_bootfile_prod.sh root/scripts
 cp -r /custom_files/create-users.sh root/scripts
+cp -r /custom_files/disable_disconnected_nics.sh root/scripts
+cp -r /custom_files/disable_disconnected_nics.service usr/lib/systemd/system/
 if [ -n "$prod_flag" ]; then
   cp -r /custom_files/run_bootfile_prod.service usr/lib/systemd/system/run_bootfile.service
 else
@@ -139,6 +141,9 @@ cp -r /custom_files/epics.conf etc/security/limits.d
 cp -r /custom_files/90-nproc.conf etc/security/limits.d
 cp -r /custom_files/SLAC_properties etc/SLAC_properties
 cp -r /custom_files/sudoers etc/sudoers
+cp -f /custom_files/sshd_config etc/ssh/sshd_config
+cp -f /custom_files/limits.conf etc/security/limits.conf
+cp -f /custom_files/udev_rules/* etc/udev/rules.d/
 
 # Set some important configuration
 if [ ! -e "init" ]; then
@@ -183,9 +188,15 @@ chroot . \
     bash -c '\
         /root/scripts/create-users.sh && \
         systemctl enable /usr/lib/systemd/system/run_bootfile.service && \
-	systemctl enable chronyd && \
+	      systemctl enable chronyd && \
+        systemctl enable disable_disconnected_nics.service && \
+        localedef -i en_US -f UTF-8 en_US.utf8 && \
         exit \
     '
+
+# Set the default locale. This matches the default on our DEV machines.
+echo "LANG=en_US.utf8" > etc/locale.conf
+
 
 # Generate ssh keys to avoid generating new ones every time the diskless
 # system boots, creating annoying RSA key mismatch error messages when

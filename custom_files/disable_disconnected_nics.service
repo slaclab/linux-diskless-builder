@@ -1,0 +1,10 @@
+[Unit]
+Description=Disable disconnected network interfaces on boot
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/root/scripts/disable_disconnected_nics.sh
+
+[Install]
+WantedBy=multi-user.target
