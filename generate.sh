@@ -6,7 +6,7 @@ set -ex
 cd docker && ./build.sh && cd -
 
 # Use the docker image to build the diskless images
-docker container run -ti --rm \
+docker container run -i --rm \
     --ulimit "nofile=1024:1024" \
     --mount src=${PWD}/output,target=/output,type=bind \
     --mount src=rl9-builder,target=/rl9-builder,type=volume \
