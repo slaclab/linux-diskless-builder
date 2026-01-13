@@ -2,6 +2,9 @@
 
 set -ex
 
+# Create output directory if it doesn't exist
+mkdir -p output
+
 # Generate the builder docker image
 cd docker && ./build.sh && cd -
 
