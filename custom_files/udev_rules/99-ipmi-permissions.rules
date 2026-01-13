@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 KERNEL=="ipmi*", MODE="0666"
+=======
+KERNEL=="ipmi*", MODE="0666"
+>>>>>>> origin/pre-release

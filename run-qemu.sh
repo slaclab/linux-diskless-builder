@@ -23,4 +23,8 @@ qemu-system-x86_64 \
 	-kernel ./$(find output -iname "vmlinuz*" | head -n 1) \
 	-initrd $IMAGE \
 	-append "console=ttyS0 init=/init root=/dev/ram0"
+	-kernel ./$(find output -iname "vmlinuz-*" | head -n 1) \
+	-initrd $IMAGE \
+	-append "console=ttyS0 init=/init root=/dev/ram0" \
+	-nic user,hostfwd=tcp::8022-:22
 

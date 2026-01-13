@@ -131,6 +131,8 @@ cp -r /custom_files/run_bootfile_prod.sh root/scripts
 cp -r /custom_files/create-users.sh root/scripts
 cp -r /custom_files/disable_disconnected_nics.sh root/scripts
 cp -r /custom_files/disable_disconnected_nics.service usr/lib/systemd/system/
+cp -r /custom_files/disable_disconnected_nics.sh root/scripts
+cp -r /custom_files/disable_disconnected_nics.service usr/lib/systemd/system/
 if [ -n "$prod_flag" ]; then
   cp -r /custom_files/run_bootfile_prod.service usr/lib/systemd/system/run_bootfile.service
 else
@@ -140,6 +142,9 @@ cp -r /custom_files/epics.conf etc/security/limits.d
 cp -r /custom_files/90-nproc.conf etc/security/limits.d
 cp -r /custom_files/SLAC_properties etc/SLAC_properties
 cp -r /custom_files/sudoers etc/sudoers
+cp -f /custom_files/sshd_config etc/ssh/sshd_config
+cp -f /custom_files/limits.conf etc/security/limits.conf
+cp -f /custom_files/udev_rules/* etc/udev/rules.d/
 cp -f /custom_files/sshd_config etc/ssh/sshd_config
 cp -f /custom_files/limits.conf etc/security/limits.conf
 cp -f /custom_files/udev_rules/* etc/udev/rules.d/
@@ -182,7 +187,8 @@ sed -i "s/#DefaultLimitRTPRIO=/DefaultLimitRTPRIO=infinity/g" etc/systemd/user.c
 # chroot, set a blank password to root, and create the laci account. laci
 # account must have UID 8412 and be part of an lcls group with GID 2211.
 # The IDs are important for accessing NFS directories.
-# Activate NTP.
+# Deactivate all NICs that are disconnected from a network.
+# Activate NTP, generate required locales
 chroot . \
     bash -c '\
         /root/scripts/create-users.sh && \
@@ -192,6 +198,10 @@ chroot . \
         localedef -i en_US -f UTF-8 en_US.utf8 && \
         exit \
     '
+
+# Set the default locale. This matches the default on our DEV machines.
+echo "LANG=en_US.utf8" > etc/locale.conf
+
 
 # Set the default locale. This matches the default on our DEV machines.
 echo "LANG=en_US.utf8" > etc/locale.conf
