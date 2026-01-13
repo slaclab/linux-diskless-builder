@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 show_usage() {
     echo "Usage: $0 [--prod] [-h/--help] [-s/--skip-output]"
     echo "Builds the Rocky image inside Docker and outputs"
@@ -106,10 +104,11 @@ dnf --installroot=/rl9-builder/diskless-root  --enablerepo=rocky-vault --setopt=
     gdb-gdbserver \
     tcpdump \
     chrony \
-	sudo \
+	  sudo \
     cronie \
     hostname \
-    less
+    less \
+    glibc-locale-source
 
 # hack alert! Install screen on host to work around a bug:
 #   gpg key read from /etc/pki/... but rpm WILL NOT APPEND "installroot" to path
