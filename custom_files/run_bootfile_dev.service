@@ -5,6 +5,9 @@ After=network-online.target
 [Service]
 Type=simple
 ExecStart = /root/scripts/run_bootfile_dev.sh
+StandardOutput=journal+console
+StandardError=inherit
+TTYPath=/dev/tty1
 
 [Install]
 WantedBy = default.target
